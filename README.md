@@ -1,6 +1,6 @@
 # SpaceWar with Godot
 
-This project is a usage sample of [rollback netcode](https://lucasteles.github.io/Backdash/docs/introduction.html#how-does-it-work) using [Backdash](https://github.com/lucasteles/Backdash) in [Godot](https://godotengine.org/).
+This project is a usage sample of [rollback netcode](https://delta3-studio.github.io/Backdash/docs/introduction.html#how-does-it-work) using [Backdash](https://github.com/delta3-studio/Backdash) in [Godot](https://godotengine.org/).
 
 It shows a basic example of an online lobby for NAT traversal using [UDP hole punching](https://en.wikipedia.org/wiki/UDP_hole_punching).
 
@@ -10,7 +10,7 @@ It shows a basic example of an online lobby for NAT traversal using [UDP hole pu
 # How does it work?
 
 This enables a P2P connection over the internet, this is possible using
-a [middle server](https://github.com/lucasteles/Backdash/tree/master/samples/LobbyServer)
+a [middle server](https://github.com/delta3-studio/Backdash/tree/master/samples/LobbyServer)
 which all clients know.
 The server catches the IP address and port of a client and sends it to the others.
 
@@ -22,7 +22,7 @@ basic `Authentication` mechanism.
 
 The client uses HTTP pooling to get updated information on each lobby member/peer.
 
-When logged in, every client needs to send a `UDP` package with their token to the server. The server uses the package header metadata  
+When logged in, every client needs to send a `UDP` package with their token to the server. The server uses the package header metadata
 to keep track of their `IP` and open `Port`.
 
 > ⚠️ UDP Hole punching usually **does not** work with clients behind the same NAT. To mitigate this the server
@@ -41,7 +41,7 @@ to keep track of their `IP` and open `Port`.
 > [!NOTE]
 > This project uses an already published [demo lobby server](https://lobby-server.fly.dev/swagger/index.html).
 
-The server URL is configured in the `settings.ini` file and you can start your own [server from here](https://github.com/lucasteles/Backdash/tree/master/samples/LobbyServer):
+The server URL is configured in the `settings.ini` file and you can start your own [server from here](https://github.com/delta3-studio/Backdash/tree/master/samples/LobbyServer):
 
 After cloning the repository run this command on the server project directory:
 ```bash
