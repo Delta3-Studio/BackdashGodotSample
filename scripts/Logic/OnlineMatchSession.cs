@@ -72,7 +72,7 @@ public sealed class OnlineMatchSession(
 
     public void TimeSync(FrameSpan framesAhead)
     {
-        Log.Debug($"{DateTime.Now:o} => Time sync requested {framesAhead.FrameCount}");
+        Log.Debug($"{DateTime.Now:o} => Time sync requested {framesAhead.Frames}");
         nonGameState.SleepTime = framesAhead.Duration().TotalSeconds;
     }
 
