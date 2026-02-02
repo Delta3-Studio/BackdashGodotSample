@@ -52,9 +52,7 @@ public partial class LobbyScene : Node
 
     public override void _Process(double delta)
     {
-        if (user is null)
-            return;
-
+        if (user is null) return;
         CheckPlayersReady();
     }
 
@@ -68,7 +66,6 @@ public partial class LobbyScene : Node
     }
 
     async void _OnRefreshLobby() => await RefreshLobby();
-
     async void _OnPingTimer() => await PingUdp();
 
     void LoadControls()
@@ -228,7 +225,6 @@ public partial class LobbyScene : Node
         }
     }
 
-
     bool pinging;
 
     async Task PingUdp()
@@ -267,6 +263,8 @@ public partial class LobbyScene : Node
             list.SetItemIconModulate(index, MemberStatusColor(status));
             list.SetItemTooltip(index, status.ToString());
         }
+
+        return;
 
         MemberStatus FindStatus(Peer player)
         {
@@ -309,7 +307,7 @@ public partial class LobbyScene : Node
         }
     }
 
-    void LoadBattleScene() => SceneManager.Instance.ChangeTo(SceneName.Battle);
+    static void LoadBattleScene() => SceneManager.Instance.ChangeTo(SceneName.Battle);
 
     void CheckPlayersReady()
     {
@@ -339,37 +337,32 @@ public partial class LobbyScene : Node
 
         void ConfigureBattleScene()
         {
-            List<NetcodePlayer> players = [];
-
-            foreach (var player in lobbyInfo.Players)
-            {
-                players.Add(
+            var players = lobbyInfo.Players
+                .Select(player =>
                     player.PeerId == user.PeerId
                         ? NetcodePlayer.CreateLocal()
-                        : NetcodePlayer.CreateRemote(udpClient.GetFallbackEndpoint(user, player))
-                );
-            }
+                        : NetcodePlayer.CreateRemote(player.GetEndpointForUser(user)))
+                .ToList();
 
             if (lobbyInfo.SpectatorMapping.SingleOrDefault(m => m.Host == user.PeerId)
-                is { Watchers: { } spectatorIds })
-                players.AddRange(lobbyInfo.Spectators
+                is { Watchers: { Length: > 0 } spectatorIds })
+            {
+                var spectators = lobbyInfo.Spectators
                     .Where(s => spectatorIds.Contains(s.PeerId))
-                    .Select(spectator => udpClient.GetFallbackEndpoint(user, spectator))
-                    .Select(x => NetcodePlayer.CreateSpectator(x)));
+                    .Select(s => NetcodePlayer.CreateSpectator(s.GetEndpointForUser(user)));
+
+                players.AddRange(spectators);
+            }
 
             config.MatchPlayers = players.AsReadOnly();
         }
 
         void ConfigureSpectatorScene()
         {
-            var hostId = lobbyInfo.SpectatorMapping
-                .SingleOrDefault(x => x.Watchers.Contains(user.PeerId))
-                ?.Host;
-
+            var hostId = lobbyInfo.SpectatorMapping.SingleOrDefault(x => x.Watchers.Contains(user.PeerId))?.Host;
             var host = lobbyInfo.Players.Single(x => x.PeerId == hostId);
-            config.SpectateHost = udpClient.GetFallbackEndpoint(user, host);
-
-            DisplayServer.WindowSetTitle($"Space War {config.LocalPort}: spectating {host.Username}@{lobbyInfo.Name}");
+            config.SpectateHost = host.GetEndpointForUser(user);
+            DisplayServer.WindowSetTitle($"Space War {config.LocalPort}: watching {host.Username}@{lobbyInfo.Name}");
         }
     }
 
