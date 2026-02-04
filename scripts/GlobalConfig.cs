@@ -9,6 +9,7 @@ public class GlobalConfig
 
     public string Username { get; set; }
     public string LobbyName { get; set; }
+    public int LobbyGameId { get; set; }
     public Uri ServerUrl { get; set; }
     public int LocalPort { get; set; }
     public int ServerUdpPort { get; set; }
@@ -21,11 +22,11 @@ public class GlobalConfig
     {
         ConfigFile config = new();
         config.Load("res://settings.ini");
-
         var section = config.GetSections().Single();
 
         LobbyName = (string)config.GetValue(section, nameof(LobbyName));
         LobbyName = LobbyName.ToAlphaNumeric();
+        LobbyGameId = (int)config.GetValue(section, nameof(LobbyGameId));
 
         LoadLocalPort(config, section);
         LoadUsername(config, section);

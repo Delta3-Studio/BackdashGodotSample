@@ -31,7 +31,7 @@ public partial class LobbyScene : Node
         FillHelperLabels();
         UpdateStatus();
 
-        httpClient = new(config.LocalPort, config.ServerUrl);
+        httpClient = new(config.LocalPort, config.ServerUrl, config.LobbyGameId);
         udpClient = new(config.LocalPort, config.ServerUrl, config.ServerUdpPort);
 
         await RequestLobby();
@@ -42,9 +42,7 @@ public partial class LobbyScene : Node
 
     protected override void Dispose(bool disposing)
     {
-        if (!cts.IsCancellationRequested)
-            cts.Cancel();
-
+        if (!cts.IsCancellationRequested) cts.Cancel();
         cts.Dispose();
         udpClient.Dispose();
         base.Dispose(disposing);
@@ -59,7 +57,10 @@ public partial class LobbyScene : Node
     public override async void _Input(InputEvent input)
     {
         if (input.IsActionPressed(ActionNames.Cancel))
+        {
+            await httpClient.LeaveLobby(cts.Token);
             GetTree().Quit();
+        }
 
         if (input.IsActionPressed(ActionNames.Start))
             await ToggleReady();
@@ -137,7 +138,7 @@ public partial class LobbyScene : Node
 
         if (!AllReachable()) return;
 
-        await httpClient.ToggleReady(user);
+        await httpClient.ToggleReady(cts.Token);
 
         readyToStart = true;
         UpdateStatus();
@@ -148,7 +149,7 @@ public partial class LobbyScene : Node
         user = null;
         try
         {
-            user = await httpClient.EnterLobby(config.LobbyName, config.Username, config.Mode);
+            user = await httpClient.EnterLobby(config.LobbyName, config.Username, config.Mode, cts.Token);
             await RefreshLobby();
 
             config.LobbyName = lobbyInfo.Name;
@@ -198,7 +199,7 @@ public partial class LobbyScene : Node
         refreshing = true;
         try
         {
-            lobbyInfo = await httpClient.GetLobby(user, cts.Token);
+            lobbyInfo = await httpClient.GetLobby(cts.Token);
             // Log.Info($"On lobby: {lobbyInfo.Name} at {lobbyInfo.CreatedAt}");
 
             connected = lobbyInfo
