@@ -32,7 +32,7 @@ public sealed class LobbyUdpClient : IDisposable
             .ConfigureAwait(false);
     }
 
-    public async Task Ping(User user, Peer[] peers, CancellationToken ct)
+    public async Task HandShake(User user, Peer[] peers, CancellationToken ct)
     {
         if (peers.Length is 0 ||
             !user.PeerId.TryWriteBytes(sendBuffer, true, out var bytesWritten) || bytesWritten is 0)

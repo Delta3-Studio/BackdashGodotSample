@@ -57,17 +57,35 @@ public partial class LobbyScene : Node
     public override async void _Input(InputEvent input)
     {
         if (input.IsActionPressed(ActionNames.Cancel))
-        {
-            await httpClient.LeaveLobby(cts.Token);
             GetTree().Quit();
-        }
 
         if (input.IsActionPressed(ActionNames.Start))
             await ToggleReady();
     }
 
+    public override async void _ExitTree() => await TryLeave();
     async void _OnRefreshLobby() => await RefreshLobby();
     async void _OnPingTimer() => await PingUdp();
+
+    async Task TryLeave()
+    {
+        try
+        {
+            if (lobbyInfo is null) return;
+            lobbyInfo = null;
+            Log.Info("Leaving Lobby...");
+            await httpClient.LeaveLobby(cts.Token);
+            Log.Info("Lobby Leaved.");
+        }
+        catch (TaskCanceledException)
+        {
+            // skip
+        }
+        catch (Exception e)
+        {
+            Log.Warning($"Unable to leave lobby: {e}");
+        }
+    }
 
     void LoadControls()
     {
@@ -199,7 +217,15 @@ public partial class LobbyScene : Node
         refreshing = true;
         try
         {
-            lobbyInfo = await httpClient.GetLobby(cts.Token);
+            if (await httpClient.GetLobby(cts.Token) is not { } lobby)
+            {
+                Log.Warning("Can't find Lobby...");
+                lobbyInfo = null;
+                SceneManager.Instance.ChangeTo(SceneName.Login);
+                return;
+            }
+
+            lobbyInfo = lobby;
             // Log.Info($"On lobby: {lobbyInfo.Name} at {lobbyInfo.CreatedAt}");
 
             connected = lobbyInfo
@@ -236,8 +262,8 @@ public partial class LobbyScene : Node
         try
         {
             await Task.WhenAll(
-                udpClient.Ping(user, lobbyInfo.Players, cts.Token),
-                udpClient.Ping(user, lobbyInfo.Spectators, cts.Token)
+                udpClient.HandShake(user, lobbyInfo.Players, cts.Token),
+                udpClient.HandShake(user, lobbyInfo.Spectators, cts.Token)
             );
         }
         catch (OperationCanceledException)
@@ -271,9 +297,7 @@ public partial class LobbyScene : Node
         {
             if (player.PeerId == user.PeerId)
             {
-                if (!connected)
-                    return MemberStatus.Connecting;
-
+                if (!connected) return MemberStatus.Connecting;
                 return readyToStart ? MemberStatus.Ready : MemberStatus.Reachable;
             }
 

@@ -1,13 +1,15 @@
+#nullable enable
+using Backdash.Network;
+
 namespace SpaceWar.Services;
 
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Json;
-using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Backdash.JsonConverters;
+using Backdash.Json;
 using Models;
-using HttpClient = System.Net.Http.HttpClient;
 
 public sealed class LobbyHttpClient(int localPort, Uri serverUri, int gameId)
 {
@@ -33,7 +35,11 @@ public sealed class LobbyHttpClient(int localPort, Uri serverUri, int gameId)
         CancellationToken ct = default
     )
     {
-        var localEndpoint = await GetLocalEndpoint(ct);
+        IPEndPoint? localEndpoint =
+            await NetUtils.FindNetworkIPAddress(ct: ct) is { } ipAddress
+                ? new(ipAddress, localPort)
+                : null;
+
         var response = await client.PostAsJsonAsync($"/{gameId}/lobby", new
         {
             lobbyName,
@@ -56,9 +62,13 @@ public sealed class LobbyHttpClient(int localPort, Uri serverUri, int gameId)
         return result;
     }
 
-    public async Task<Lobby> GetLobby(CancellationToken ct = default) =>
-        await client.GetFromJsonAsync<Lobby>("/entry/lobby", jsonOptions, ct)
-        ?? throw new InvalidOperationException();
+    public async Task<Lobby?> GetLobby(CancellationToken ct = default)
+    {
+        var response = await client.GetAsync("/entry/lobby", ct);
+        if (response.StatusCode is HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Lobby>(jsonOptions, ct);
+    }
 
     public async Task LeaveLobby(CancellationToken ct = default)
     {
@@ -70,24 +80,5 @@ public sealed class LobbyHttpClient(int localPort, Uri serverUri, int gameId)
     {
         var response = await client.PutAsync("/entry/ready", null, ct);
         response.EnsureSuccessStatusCode();
-    }
-
-    async Task<IPEndPoint> GetLocalEndpoint(CancellationToken ct = default)
-    {
-        try
-        {
-            using Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, 0);
-            await socket.ConnectAsync("8.8.8.8", 65530, ct);
-            if (socket.LocalEndPoint is not IPEndPoint { Address: { } ipAddress })
-                return null;
-
-            return new(ipAddress, localPort);
-        }
-        catch (Exception)
-        {
-            // skip
-        }
-
-        return null;
     }
 }

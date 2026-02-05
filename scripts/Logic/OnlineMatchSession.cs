@@ -116,10 +116,10 @@ public sealed class OnlineMatchSession(
         }
     }
 
-    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer) =>
+    public void SaveState(Frame frame, ref readonly BinaryBufferWriter writer) =>
         gameState.SaveState(in writer);
 
-    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
+    public void LoadState(Frame frame, ref readonly BinaryBufferReader reader)
     {
         Console.WriteLine($"{DateTime.Now:o} => Loading state {frame}...");
         gameState.LoadState(in reader);
