@@ -8,15 +8,15 @@ public sealed class Lobby
     public bool Ready { get; init; }
     public required Peer[] Players { get; init; }
     public required Peer[] Spectators { get; init; }
-    public required SpectatorMapping[] SpectatorMapping { get; init; }
+    public required SpectatorMap[] SpectatorMapping { get; init; }
 
-    public Peer[] GetPeers(PlayerMode mode) =>
+    public Peer[] GetPeers(PeerMode mode) =>
         mode switch
         {
-            PlayerMode.Player => Players,
-            PlayerMode.Spectator => Spectators,
+            PeerMode.Player => Players,
+            PeerMode.Spectator => Spectators,
             _ => throw new ArgumentOutOfRangeException(),
         };
-}
 
-public sealed record SpectatorMapping(Guid Host, Guid[] Watchers);
+    public sealed record SpectatorMap(Guid Host, Guid[] Watchers);
+}

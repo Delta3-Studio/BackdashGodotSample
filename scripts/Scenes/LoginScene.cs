@@ -19,9 +19,9 @@ public partial class LoginScene : Node
         txtLocalPort.Text = config.LocalPort.ToString();
     }
 
-    void _StartAsPlayer() => StartLobby(PlayerMode.Player);
+    void _StartAsPlayer() => StartLobby(PeerMode.Player);
 
-    void _StartAsSpectator() => StartLobby(PlayerMode.Spectator);
+    void _StartAsSpectator() => StartLobby(PeerMode.Spectator);
 
     public override void _Input(InputEvent input)
     {
@@ -29,7 +29,7 @@ public partial class LoginScene : Node
             GetTree().Quit();
     }
 
-    void StartLobby(PlayerMode mode)
+    void StartLobby(PeerMode mode)
     {
         config.Username = txtUsername.Text.ToAlphaNumeric();
         config.LobbyName = txtLobby.Text.ToAlphaNumeric();

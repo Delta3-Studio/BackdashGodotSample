@@ -13,7 +13,7 @@ public class GlobalConfig
     public Uri ServerUrl { get; set; }
     public int LocalPort { get; set; }
     public int ServerUdpPort { get; set; }
-    public PlayerMode Mode { get; set; }
+    public PeerMode Mode { get; set; }
     public Lobby LobbyInfo { get; set; }
     public IPEndPoint SpectateHost { get; set; }
     public IReadOnlyList<NetcodePlayer> MatchPlayers { get; set; }

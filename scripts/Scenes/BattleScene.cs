@@ -67,7 +67,7 @@ public partial class BattleScene : Node2D
 
         switch (config.Mode)
         {
-            case PlayerMode.Player:
+            case PeerMode.Player:
                 if (!config.MatchPlayers.Any(x => x.IsLocal()))
                     throw new InvalidOperationException("No local player defined");
 
@@ -76,7 +76,7 @@ public partial class BattleScene : Node2D
                     .ForRemote()
                     .Build();
 
-            case PlayerMode.Spectator:
+            case PeerMode.Spectator:
                 return builder
                     .WithPlayerCount(config.LobbyInfo.Players.Length)
                     .ForSpectator(config.SpectateHost)

@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 using Backdash.Json;
 using Models;
 
-public sealed class LobbyHttpClient(int localPort, Uri serverUri, int gameId)
+public sealed class LobbyHttpClient(int localPort, Uri serverUri, int gameId) : IDisposable
 {
     static readonly JsonSerializerOptions jsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -30,8 +30,10 @@ public sealed class LobbyHttpClient(int localPort, Uri serverUri, int gameId)
 
     readonly Guid recreationKey = Guid.NewGuid();
 
+    public void Dispose() => client.Dispose();
+
     public async Task<User> EnterLobby(
-        string lobbyName, string username, PlayerMode mode,
+        string lobbyName, string username, PeerMode mode,
         CancellationToken ct = default
     )
     {

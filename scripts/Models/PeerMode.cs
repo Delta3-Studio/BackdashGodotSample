@@ -1,6 +1,6 @@
 namespace SpaceWar.Models;
 
-public enum PlayerMode
+public enum PeerMode
 {
     Player,
     Spectator,

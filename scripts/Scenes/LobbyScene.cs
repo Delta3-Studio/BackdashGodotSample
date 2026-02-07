@@ -45,6 +45,7 @@ public partial class LobbyScene : Node
         if (!cts.IsCancellationRequested) cts.Cancel();
         cts.Dispose();
         udpClient.Dispose();
+        httpClient.Dispose();
         base.Dispose(disposing);
     }
 
@@ -65,7 +66,7 @@ public partial class LobbyScene : Node
 
     public override async void _ExitTree() => await TryLeave();
     async void _OnRefreshLobby() => await RefreshLobby();
-    async void _OnPingTimer() => await PingUdp();
+    async void _OnPingTimer() => await HandShakePeers();
 
     async Task TryLeave()
     {
@@ -107,13 +108,13 @@ public partial class LobbyScene : Node
 
     void Status(string text = null) => lblStatus.Text = text ?? "";
 
-    static Color MemberStatusColor(MemberStatus status) => status switch
+    static Color MemberStatusColor(PeerStatus status) => status switch
     {
-        MemberStatus.None => Colors.White,
-        MemberStatus.Connecting => Colors.Red,
-        MemberStatus.Connected => Colors.Orange,
-        MemberStatus.Reachable => Colors.SkyBlue,
-        MemberStatus.Ready => Colors.Lime,
+        PeerStatus.None => Colors.White,
+        PeerStatus.Connecting => Colors.Red,
+        PeerStatus.Connected => Colors.Orange,
+        PeerStatus.Reachable => Colors.SkyBlue,
+        PeerStatus.Ready => Colors.Lime,
         _ => throw new ArgumentOutOfRangeException(nameof(status), status, null),
     };
 
@@ -124,7 +125,7 @@ public partial class LobbyScene : Node
 
         void UpdateStatusText()
         {
-            if (config.Mode is PlayerMode.Spectator)
+            if (config.Mode is PeerMode.Spectator)
                 Status("waiting players start...");
             else if (user is null || !connected)
                 Status("joining lobby...");
@@ -139,19 +140,19 @@ public partial class LobbyScene : Node
         void UpdateStatusColor()
         {
             if (!connected)
-                lblUserName.LabelSettings.FontColor = MemberStatusColor(MemberStatus.Connecting);
-            else if (config.Mode is PlayerMode.Spectator)
-                lblUserName.LabelSettings.FontColor = MemberStatusColor(MemberStatus.None);
+                lblUserName.LabelSettings.FontColor = MemberStatusColor(PeerStatus.Connecting);
+            else if (config.Mode is PeerMode.Spectator)
+                lblUserName.LabelSettings.FontColor = MemberStatusColor(PeerStatus.None);
             else if (readyToStart)
-                lblUserName.LabelSettings.FontColor = MemberStatusColor(MemberStatus.Ready);
+                lblUserName.LabelSettings.FontColor = MemberStatusColor(PeerStatus.Ready);
             else
-                lblUserName.LabelSettings.FontColor = MemberStatusColor(MemberStatus.Reachable);
+                lblUserName.LabelSettings.FontColor = MemberStatusColor(PeerStatus.Reachable);
         }
     }
 
     async Task ToggleReady()
     {
-        if (readyToStart || config.Mode is PlayerMode.Spectator)
+        if (readyToStart || config.Mode is PeerMode.Spectator)
             return;
 
         if (!AllReachable()) return;
@@ -177,7 +178,7 @@ public partial class LobbyScene : Node
             UpdateTitle();
 
             if (Array.Exists(lobbyInfo.Spectators, s => s.PeerId == user.PeerId))
-                config.Mode = PlayerMode.Spectator;
+                config.Mode = PeerMode.Spectator;
 
             Status();
         }
@@ -254,7 +255,7 @@ public partial class LobbyScene : Node
 
     bool pinging;
 
-    async Task PingUdp()
+    async Task HandShakePeers()
     {
         if (user is null || pinging || lobbyInfo is null || lobbyInfo.Ready) return;
 
@@ -285,7 +286,7 @@ public partial class LobbyScene : Node
         list.Clear();
         foreach (var player in peers)
         {
-            var status = FindStatus(player);
+            var status = GetStatus(player);
             var index = list.AddItem(player.Username, blankTexture, false);
             list.SetItemIconModulate(index, MemberStatusColor(status));
             list.SetItemTooltip(index, status.ToString());
@@ -293,21 +294,21 @@ public partial class LobbyScene : Node
 
         return;
 
-        MemberStatus FindStatus(Peer player)
+        PeerStatus GetStatus(Peer player)
         {
             if (player.PeerId == user.PeerId)
             {
-                if (!connected) return MemberStatus.Connecting;
-                return readyToStart ? MemberStatus.Ready : MemberStatus.Reachable;
+                if (!connected) return PeerStatus.Connecting;
+                return readyToStart ? PeerStatus.Ready : PeerStatus.Reachable;
             }
 
             if (!player.Connected)
-                return MemberStatus.Connecting;
+                return PeerStatus.Connecting;
 
             if (!udpClient.IsKnown(player.PeerId))
-                return MemberStatus.Connected;
+                return PeerStatus.Connected;
 
-            return player.Ready ? MemberStatus.Ready : MemberStatus.Reachable;
+            return player.Ready ? PeerStatus.Ready : PeerStatus.Reachable;
         }
     }
 
@@ -315,10 +316,10 @@ public partial class LobbyScene : Node
     {
         var labels = new[]
         {
-            (Status: MemberStatus.Connecting, Text: "Not connected to the server yet."),
-            (Status: MemberStatus.Connected, Text: "Valid UDP connection with server."),
-            (Status: MemberStatus.Reachable, Text: "Valid UDP connection with peers."),
-            (Status: MemberStatus.Ready, Text: "Ready to start the game."),
+            (Status: PeerStatus.Connecting, Text: "Not connected to the server yet."),
+            (Status: PeerStatus.Connected, Text: "Valid UDP connection with server."),
+            (Status: PeerStatus.Reachable, Text: "Valid UDP connection with peers."),
+            (Status: PeerStatus.Ready, Text: "Ready to start the game."),
         };
 
         var list = GetNode<ItemList>("%lstStatusLabels");
@@ -346,10 +347,10 @@ public partial class LobbyScene : Node
 
         switch (config.Mode)
         {
-            case PlayerMode.Player:
+            case PeerMode.Player:
                 ConfigureBattleScene();
                 break;
-            case PlayerMode.Spectator:
+            case PeerMode.Spectator:
                 ConfigureSpectatorScene();
                 break;
             default:
@@ -391,7 +392,7 @@ public partial class LobbyScene : Node
         }
     }
 
-    public enum MemberStatus
+    public enum PeerStatus
     {
         None,
         Connecting,
