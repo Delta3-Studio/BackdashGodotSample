@@ -3,7 +3,7 @@ using Backdash.Serialization;
 
 namespace SpaceWar.Logic;
 
-public sealed class OnlineMatchSession(
+public sealed class GameSessionHandler(
     GameState gameState,
     NonGameState nonGameState,
     INetcodeSession<GameInputs> session
@@ -11,14 +11,13 @@ public sealed class OnlineMatchSession(
 {
     public void Update(double delta)
     {
+        session.BeginFrame();
         if (nonGameState.Sleeping)
         {
             nonGameState.SleepTime -= delta;
             return;
         }
 
-        UpdateStats();
-        session.BeginFrame();
         if (nonGameState.LocalPlayerHandle is { } localPlayer)
         {
             HandleNoGameInput();
@@ -75,9 +74,6 @@ public sealed class OnlineMatchSession(
         Log.Debug($"{DateTime.Now:o} => Time sync requested {framesAhead.Frames}");
         nonGameState.SleepTime = framesAhead.Duration().TotalSeconds;
     }
-
-    void UpdateStats() =>
-        nonGameState.RollbackFrames = session.RollbackFrames;
 
     public void OnPeerEvent(NetcodePlayer player, in PeerEventInfo evt)
     {

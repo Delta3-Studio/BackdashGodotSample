@@ -35,7 +35,6 @@ public sealed class NonGameState
 
     public readonly StringBuilder StatusText = new();
 
-    public FrameSpan RollbackFrames;
     public double SleepTime;
     public bool Sleeping => SleepTime > 0f;
 

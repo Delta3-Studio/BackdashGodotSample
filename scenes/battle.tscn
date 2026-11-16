@@ -1,7 +1,7 @@
-[gd_scene load_steps=13 format=3 uid="uid://imd130mjtljw"]
+[gd_scene format=3 uid="uid://imd130mjtljw"]
 
-[ext_resource type="Script" path="res://scripts/Scenes/BattleScene.cs" id="1_jb3we"]
-[ext_resource type="Script" path="res://scripts/Logic/BackgroundManager.cs" id="2_1jvyg"]
+[ext_resource type="Script" uid="uid://btrkqf38vato4" path="res://scripts/Scenes/BattleScene.cs" id="1_jb3we"]
+[ext_resource type="Script" uid="uid://cwet41vxm8ohj" path="res://scripts/Logic/BackgroundManager.cs" id="2_1jvyg"]
 [ext_resource type="Texture2D" uid="uid://cswmf7rsk5xrd" path="res://assets/sprites/star_big.png" id="3_5wi1y"]
 [ext_resource type="Texture2D" uid="uid://ds0fimm25xnhy" path="res://assets/sprites/star_small.png" id="4_bnqvl"]
 
@@ -57,14 +57,19 @@ font_size = 24
 outline_size = 8
 outline_color = Color(0.0755101, 0.0755101, 0.0755101, 1)
 
-[node name="Root" type="Node2D"]
+[node name="Root" type="Node2D" unique_id=1144895107 node_paths=PackedStringArray("lblPing", "lblRollbackFrames", "lblDelayFrames", "lblStatusMessage", "messageBox")]
 script = ExtResource("1_jb3we")
+lblPing = NodePath("HUD/Margin/Stats/FooterBox/PingInfo/lblPingValue")
+lblRollbackFrames = NodePath("HUD/Margin/Stats/FooterBox/RollbackInfo/lblRollbackValue")
+lblDelayFrames = NodePath("HUD/Margin/Stats/FooterBox/DelayInfo/lblDelayValue")
+lblStatusMessage = NodePath("HUD/Margin/MessageBox/HeaderBox/lblStatusMessage")
+messageBox = NodePath("HUD/Margin/MessageBox")
 metadata/_edit_vertical_guides_ = [-3015.0, -3012.0]
 
-[node name="HUD" type="CanvasLayer" parent="."]
+[node name="HUD" type="CanvasLayer" parent="." unique_id=749993874]
 layer = 9
 
-[node name="Margin" type="MarginContainer" parent="HUD"]
+[node name="Margin" type="MarginContainer" parent="HUD" unique_id=1190576825]
 offset_right = 1023.0
 offset_bottom = 764.0
 theme_override_constants/margin_left = 1
@@ -72,14 +77,14 @@ theme_override_constants/margin_top = 1
 theme_override_constants/margin_right = 1
 theme_override_constants/margin_bottom = 1
 
-[node name="PlayerNames" type="MarginContainer" parent="HUD/Margin"]
+[node name="PlayerNames" type="MarginContainer" parent="HUD/Margin" unique_id=1252370572]
 layout_mode = 2
 theme_override_constants/margin_left = 14
 theme_override_constants/margin_top = 14
 theme_override_constants/margin_right = 14
 theme_override_constants/margin_bottom = 14
 
-[node name="lblPlayer1" type="Label" parent="HUD/Margin/PlayerNames"]
+[node name="lblPlayer1" type="Label" parent="HUD/Margin/PlayerNames" unique_id=265545932]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
@@ -87,7 +92,7 @@ size_flags_vertical = 0
 text = "player1: 0"
 label_settings = SubResource("LabelSettings_66f4e")
 
-[node name="lblPlayer2" type="Label" parent="HUD/Margin/PlayerNames"]
+[node name="lblPlayer2" type="Label" parent="HUD/Margin/PlayerNames" unique_id=364629432]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 8
@@ -96,7 +101,7 @@ text = "player2: 0"
 label_settings = SubResource("LabelSettings_rcs4a")
 horizontal_alignment = 2
 
-[node name="lblPlayer3" type="Label" parent="HUD/Margin/PlayerNames"]
+[node name="lblPlayer3" type="Label" parent="HUD/Margin/PlayerNames" unique_id=1482948969]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
@@ -105,7 +110,7 @@ text = "player3: 0"
 label_settings = SubResource("LabelSettings_v7kff")
 vertical_alignment = 1
 
-[node name="lblPlayer4" type="Label" parent="HUD/Margin/PlayerNames"]
+[node name="lblPlayer4" type="Label" parent="HUD/Margin/PlayerNames" unique_id=1785207744]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 8
@@ -115,86 +120,100 @@ label_settings = SubResource("LabelSettings_07wy6")
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="Stats" type="PanelContainer" parent="HUD/Margin"]
-layout_direction = 1
+[node name="Stats" type="PanelContainer" parent="HUD/Margin" unique_id=1236671558]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 8
+layout_direction = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_kgqf8")
 
-[node name="FooterBox" type="HBoxContainer" parent="HUD/Margin/Stats"]
+[node name="FooterBox" type="HBoxContainer" parent="HUD/Margin/Stats" unique_id=1961197654]
 layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="PingInfo" type="HBoxContainer" parent="HUD/Margin/Stats/FooterBox"]
+[node name="PingInfo" type="HBoxContainer" parent="HUD/Margin/Stats/FooterBox" unique_id=1522719126]
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="lblPingTitle" type="Label" parent="HUD/Margin/Stats/FooterBox/PingInfo"]
+[node name="lblPingTitle" type="Label" parent="HUD/Margin/Stats/FooterBox/PingInfo" unique_id=2106179534]
 layout_mode = 2
 size_flags_horizontal = 0
 text = "ping:"
 label_settings = SubResource("LabelSettings_n1wik")
 vertical_alignment = 1
 
-[node name="lblPingValue" type="Label" parent="HUD/Margin/Stats/FooterBox/PingInfo"]
-unique_name_in_owner = true
+[node name="lblPingValue" type="Label" parent="HUD/Margin/Stats/FooterBox/PingInfo" unique_id=2061369130]
 layout_mode = 2
 size_flags_horizontal = 0
 text = "0.00"
 label_settings = SubResource("LabelSettings_n1wik")
 vertical_alignment = 1
 
-[node name="lblPingUnit" type="Label" parent="HUD/Margin/Stats/FooterBox/PingInfo"]
+[node name="lblPingUnit" type="Label" parent="HUD/Margin/Stats/FooterBox/PingInfo" unique_id=385847085]
 layout_mode = 2
 size_flags_horizontal = 0
 text = "ms"
 label_settings = SubResource("LabelSettings_n1wik")
 vertical_alignment = 1
 
-[node name="RollbackInfo" type="HBoxContainer" parent="HUD/Margin/Stats/FooterBox"]
+[node name="RollbackInfo" type="HBoxContainer" parent="HUD/Margin/Stats/FooterBox" unique_id=1734118180]
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="lblRollbackTitle" type="Label" parent="HUD/Margin/Stats/FooterBox/RollbackInfo"]
+[node name="lblRollbackTitle" type="Label" parent="HUD/Margin/Stats/FooterBox/RollbackInfo" unique_id=1373333782]
 layout_mode = 2
 size_flags_horizontal = 0
-text = "rollback frames:"
+text = "rollback:"
 label_settings = SubResource("LabelSettings_n1wik")
 vertical_alignment = 1
 
-[node name="lblRollbackValue" type="Label" parent="HUD/Margin/Stats/FooterBox/RollbackInfo"]
-unique_name_in_owner = true
+[node name="lblRollbackValue" type="Label" parent="HUD/Margin/Stats/FooterBox/RollbackInfo" unique_id=1987070396]
 layout_mode = 2
 size_flags_horizontal = 0
 text = "0"
 label_settings = SubResource("LabelSettings_n1wik")
 vertical_alignment = 1
 
-[node name="MessageBox" type="PanelContainer" parent="HUD/Margin"]
-unique_name_in_owner = true
-layout_direction = 1
+[node name="DelayInfo" type="HBoxContainer" parent="HUD/Margin/Stats/FooterBox" unique_id=1990630433]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="lblDelayTitle" type="Label" parent="HUD/Margin/Stats/FooterBox/DelayInfo" unique_id=887011577]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "delay:"
+label_settings = SubResource("LabelSettings_n1wik")
+vertical_alignment = 1
+
+[node name="lblDelayValue" type="Label" parent="HUD/Margin/Stats/FooterBox/DelayInfo" unique_id=1402162668]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "0"
+label_settings = SubResource("LabelSettings_n1wik")
+vertical_alignment = 1
+
+[node name="MessageBox" type="PanelContainer" parent="HUD/Margin" unique_id=415544003]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+layout_direction = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_7kby4")
 
-[node name="HeaderBox" type="HBoxContainer" parent="HUD/Margin/MessageBox"]
+[node name="HeaderBox" type="HBoxContainer" parent="HUD/Margin/MessageBox" unique_id=659299680]
 custom_minimum_size = Vector2(300, 100)
 layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="lblStatusMessage" type="Label" parent="HUD/Margin/MessageBox/HeaderBox"]
-unique_name_in_owner = true
+[node name="lblStatusMessage" type="Label" parent="HUD/Margin/MessageBox/HeaderBox" unique_id=1907056971]
 layout_mode = 2
 size_flags_horizontal = 0
 text = "foo .. bar .. baz"
 label_settings = SubResource("LabelSettings_7sp01")
 vertical_alignment = 1
 
-[node name="Backgound" type="Node2D" parent="."]
+[node name="Backgound" type="Node2D" parent="." unique_id=1408103553]
 z_index = -9
 script = ExtResource("2_1jvyg")
 bigStar = ExtResource("3_5wi1y")

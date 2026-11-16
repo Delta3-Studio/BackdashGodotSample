@@ -7,52 +7,38 @@ using SpaceWar.Services;
 public partial class BattleScene : Node2D
 {
     GlobalConfig config;
-    INetcodeSession<GameInputs> netcodeSession;
-    OnlineMatchSession gameSession;
-
+    INetcodeSession<GameInputs> netcode;
+    GameSessionHandler handler;
     GameState gs;
     NonGameState ngs;
 
-    Label lblPing;
-    Label lblRollbackFrames;
-    Label lblStatusMessage;
-    PanelContainer messageBox;
+    [Export] Label lblPing;
+    [Export] Label lblRollbackFrames;
+    [Export] Label lblDelayFrames;
+    [Export] Label lblStatusMessage;
+    [Export] PanelContainer messageBox;
 
     public override void _Ready()
     {
         config = GlobalConfig.Instance;
-        lblPing = GetNode<Label>("%lblPingValue");
-        lblRollbackFrames = GetNode<Label>("%lblRollbackValue");
-        lblStatusMessage = GetNode<Label>("%lblStatusMessage");
-        messageBox = GetNode<PanelContainer>("%MessageBox");
-
         lblStatusMessage.Text = "";
         messageBox.Visible = false;
-
         InitializeSession();
     }
 
     void InitializeSession()
     {
-        netcodeSession = CreateRollbackSession();
-
         gs = new();
         ngs = new();
 
-        gs.Init(
-            netcodeSession.NumberOfPlayers,
-            (Rect2I)GetViewportRect()
-        );
+        netcode = CreateRollbackSession();
+        gs.Init(netcode.NumberOfPlayers, (Rect2I)GetViewportRect());
+        ngs.Init(gs.Ships, netcode.GetPlayers(), this);
+        Engine.SetMaxFps(netcode.FixedFrameRate);
 
-        ngs.Init(
-            gs.Ships,
-            netcodeSession.GetPlayers(),
-            this
-        );
-
-        gameSession = new(gs, ngs, netcodeSession);
-        netcodeSession.SetHandler(gameSession);
-        netcodeSession.Start();
+        handler = new(gs, ngs, netcode);
+        netcode.SetHandler(handler);
+        netcode.Start();
     }
 
     INetcodeSession<GameInputs> CreateRollbackSession()
@@ -87,23 +73,18 @@ public partial class BattleScene : Node2D
         }
     }
 
-    public override void _Process(double delta)
+    public override void _PhysicsProcess(double delta)
     {
-        if (gameSession is null)
-            return;
-
-        gameSession.Update(delta);
+        if (handler is null) return;
+        handler.Update(delta);
         UpdateUi();
     }
 
     void UpdateUi()
     {
-        var maxPing = ngs.Players
-            .Where(static p => p.Handle.IsRemote())
-            .Max(static player => player.Handle.NetworkStats.Ping);
-
-        lblRollbackFrames.Text = ngs.RollbackFrames.Frames.ToString();
-        lblPing.Text = $"{maxPing.TotalMilliseconds:f2}";
+        lblPing.Text = $"{netcode.MaxPing:f2}";
+        lblRollbackFrames.Text = netcode.RollbackFrames.Frames.ToString();
+        lblDelayFrames.Text = netcode.DynamicFrameDelay.Frames.ToString();
 
         if (!messageBox.Visible && ngs.StatusText.Length > 0)
         {
@@ -125,7 +106,7 @@ public partial class BattleScene : Node2D
 
     protected override void Dispose(bool disposing)
     {
-        netcodeSession.Dispose();
+        netcode.Dispose();
         base.Dispose(disposing);
     }
 }
