@@ -79,7 +79,7 @@ public sealed class OnlineMatchSession(
     void UpdateStats() =>
         nonGameState.RollbackFrames = session.RollbackFrames;
 
-    public void OnPeerEvent(NetcodePlayer player, PeerEventInfo evt)
+    public void OnPeerEvent(NetcodePlayer player, in PeerEventInfo evt)
     {
         Log.Debug($"{DateTime.Now:o} => PEER EVENT: {evt} from {player}");
 

@@ -1,10 +1,10 @@
 <Project Sdk="Godot.NET.Sdk/4.5.1">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <ImplicitUsings>true</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Backdash" Version="0.6.23-preview" />
+    <PackageReference Include="Backdash" Version="0.8.3-preview" />
   </ItemGroup>
 </Project>

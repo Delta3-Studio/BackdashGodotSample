@@ -1,3 +1,6 @@
+using System.Buffers;
+using Backdash.Network;
+
 namespace SpaceWar.Services;
 
 using System.Net;
@@ -11,38 +14,53 @@ public sealed class LobbyUdpClient : IDisposable
     readonly IPEndPoint serverEndpoint;
     readonly UdpSocket socket;
     readonly CancellationTokenSource cts = new();
-    readonly byte[] sendBuffer = GC.AllocateArray<byte>(Unsafe.SizeOf<Guid>(), pinned: true);
-
     readonly HashSet<Guid> knownClients = [];
+    readonly Lock locker = new();
     bool disposed;
 
     public LobbyUdpClient(int localPort, Uri serverUrl, int serverPort)
     {
-        var serverAddress = UdpSocket.GetDnsIpAddress(serverUrl.DnsSafeHost);
+        var serverAddress = NetUtils.GetDnsIpAddress(serverUrl.DnsSafeHost);
         serverEndpoint = new(serverAddress, serverPort);
         socket = new(localPort);
-
         Task.Run(() => Receive(cts.Token));
     }
 
     public async Task HandShake(User user, CancellationToken ct = default)
     {
-        if (!user.Token.TryWriteBytes(sendBuffer, true, out var bytesWritten) || bytesWritten is 0) return;
-        await socket.SendToAsync(sendBuffer.AsMemory()[..bytesWritten], serverEndpoint, ct)
-            .ConfigureAwait(false);
+        var sendBuffer = ArrayPool<byte>.Shared.Rent(Unsafe.SizeOf<Guid>());
+
+        try
+        {
+            if (!user.Token.TryWriteBytes(sendBuffer, true, out var bytesWritten) || bytesWritten is 0) return;
+            await socket.SendToAsync(sendBuffer.AsMemory()[..bytesWritten], serverEndpoint, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(sendBuffer);
+        }
     }
 
-    public async Task HandShake(User user, Peer[] peers, CancellationToken ct)
+    public async Task HandShake(User user, Peer[] peers, CancellationToken ct = default)
     {
-        if (peers.Length is 0 ||
-            !user.PeerId.TryWriteBytes(sendBuffer, true, out var bytesWritten) || bytesWritten is 0)
-            return;
+        var sendBuffer = ArrayPool<byte>.Shared.Rent(Unsafe.SizeOf<Guid>());
 
-        var msgBytes = sendBuffer.AsMemory()[..bytesWritten];
-        foreach (var peer in peers)
+        try
         {
-            if (peer.Connected && peer.PeerId != user.PeerId)
-                await socket.SendToAsync(msgBytes, peer.GetEndpointForUser(user), ct).ConfigureAwait(false);
+            if (peers.Length is 0 ||
+                !user.PeerId.TryWriteBytes(sendBuffer, true, out var bytesWritten) || bytesWritten is 0)
+                return;
+
+            ReadOnlyMemory<byte> msgBytes = sendBuffer.AsMemory()[..bytesWritten];
+            foreach (var peer in peers)
+            {
+                if (peer.Connected && peer.PeerId != user.PeerId)
+                    await socket.SendToAsync(msgBytes, peer.GetEndpointForUser(user), ct).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(sendBuffer);
         }
     }
 
@@ -70,7 +88,8 @@ public sealed class LobbyUdpClient : IDisposable
 
                 Guid peerToken = new(recBuffer.AsSpan(0, receiveInfo.ReceivedBytes), true);
                 Log.Debug($"recv ({receiveInfo.RemoteEndPoint}): Ping from '{peerToken}'");
-                if (peerToken != Guid.Empty) knownClients.Add(peerToken);
+                if (peerToken == Guid.Empty) continue;
+                lock (locker) knownClients.Add(peerToken);
             }
             catch (OperationCanceledException)
             {
@@ -83,7 +102,11 @@ public sealed class LobbyUdpClient : IDisposable
         }
     }
 
-    public bool IsKnown(Guid id) => knownClients.Contains(id);
+    public bool IsKnown(Guid id)
+    {
+        lock (locker)
+            return knownClients.Contains(id);
+    }
 
     public void Stop()
     {
